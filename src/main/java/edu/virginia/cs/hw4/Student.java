@@ -45,37 +45,43 @@ public class Student {
         this.email = email;
     }
 
+    public Transcript getTranscript() {
+        return this.transcript;
+    }
+
     public void addCourseGrade(Course course, Grade grade) {
-        transcript.courseHistory.put(course, grade);
+        transcript.addCourseGrade(course,grade);
     }
 
     public boolean hasStudentTakenCourse(Course course) {
-        return transcript.courseHistory.containsKey(course);
+        return transcript.checkForCourse(course);
     }
 
     public Grade getCourseGrade(Course course) {
+        //Fixed bug in this method that always threw exception even if a course had a grade.
         if (hasStudentTakenCourse(course)) {
-            transcript.courseHistory.get(course);
+            return transcript.getCourseGrade(course);
+        } else {
+            throw new IllegalArgumentException("ERROR: Student has no grade for " + course);
         }
-        throw new IllegalArgumentException("ERROR: Student has no grade for " + course);
     }
 
     public boolean meetsPrerequisite(Prerequisite prerequisite) {
         if (!hasStudentTakenCourse(prerequisite.course)) {
             return false;
         }
-        Grade studentGrade = transcript.courseHistory.get(prerequisite.course);
+        Grade studentGrade = transcript.getCourseGrade(prerequisite.course);
         return studentGrade.gpa >= prerequisite.minimumGrade.gpa;
     }
 
     public double getGPA() {
-        if (transcript.courseHistory.isEmpty()) {
+        if (transcript.isEmpty()) {
             throw new IllegalStateException("No courses taken, cannot get GPA");
         }
         double totalGradePoints = 0.0;
         int creditsAttempted = 0;
-        for (Course course : transcript.courseHistory.keySet()) {
-            Grade grade = transcript.courseHistory.get(course);
+        for (Course course : transcript.setofCourses()) {
+            Grade grade = transcript.getCourseGrade(course);
             int credits = course.getCreditHours();
             totalGradePoints += grade.gpa * credits;
             creditsAttempted += credits;

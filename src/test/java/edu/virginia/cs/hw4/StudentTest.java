@@ -12,23 +12,16 @@ public class StudentTest {
     private Course testCourse;
     private Student mockStudent;
     private Transcript testTranscript;
-    private Map testHistory;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         testCourse = mock(Course.class);
-        testTranscript = mock(Transcript.class);
         mockStudent = getTestStudent();
-        testTranscript.courseHistory = mock(Map.class);
-//        mockEnrollment = (List<Student>) mock(List.class);
-//        mockWaitList = (List<Student>) mock(List.class);
-//        testCourse.setEnrolledStudents(mockEnrollment);
-//        testCourse.setWaitListedStudents(mockWaitList);
+        testTranscript = new Transcript(mockStudent);
     }
     private Student getTestStudent() {
         return new Student(100, "Christopher Joseph",
-                "tbh7cm@virginia.edu", testTranscript);
+                "tbh7cm@virginia.edu");
     }
     private Course getTestCourse() {
         return new Course(18802,
@@ -47,58 +40,77 @@ public class StudentTest {
     //double getGPA()
     @Test
     public void testaddCourseGrade() {
+        //need to test for side effects
         mockStudent.addCourseGrade(testCourse,Grade.A);
-        verify(testTranscript).courseHistory.put(testCourse,Grade.A);
+        testTranscript = mockStudent.getTranscript();
+        //assert that the student's transcript added the test course.
+        assertTrue(testTranscript.courseHistory.containsKey(testCourse));
+        //assert that the student's class on transcript has the correct grade.
+        assertEquals(Grade.A,testTranscript.courseHistory.get(testCourse));
     }
     @Test
     public void testStudentAlreadyTookCourse() {
-        when(testTranscript.courseHistory.containsKey(testCourse)).thenReturn(true);
+        mockStudent.addCourseGrade(testCourse,Grade.A);
         assertTrue(mockStudent.hasStudentTakenCourse(testCourse));
     }
     @Test
     public void testStudentNeverTookCourse() {
-        assertFalse(mockStudent.hasStudentTakenCourse(testCourse));
+        Course testCourse1 = mock(Course.class);
+        mockStudent.addCourseGrade(testCourse,Grade.A);
+        assertFalse(mockStudent.hasStudentTakenCourse(testCourse1));
     }
     @Test
     public void testCantGetCourseGrade() {
-        when(testTranscript.courseHistory.containsKey(testCourse)).thenReturn(false);
+        //we did not add a class this time, so student should not have any classes to get a grade from.
         assertThrows(IllegalArgumentException.class, () ->
                 mockStudent.getCourseGrade(testCourse));
-        verify(testTranscript.courseHistory, never()).get(testCourse);
     }
     @Test
     public void testGetCourseGrade() {
-        when(testTranscript.courseHistory.containsKey(testCourse)).thenReturn(true);
-        verify(testTranscript.courseHistory).get(testCourse);
+        mockStudent.addCourseGrade(testCourse,Grade.A);
+        Grade actual = mockStudent.getCourseGrade(testCourse);
+        Grade expected = Grade.A;
+        assertEquals(expected,actual);
     }
     @Test
     @DisplayName("Passed Pre-req class")
     public void testMeetsPreRequisites() {
         //took pre-req and passed it
-
+        Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
+        mockStudent.addCourseGrade(testCourse,Grade.B_PLUS);
+        Course testCourse1 = mock(Course.class);
+        testCourse1.addPrerequisite(prerequisite);
+        assertTrue(mockStudent.meetsPrerequisite(prerequisite));
     }
     @Test
     @DisplayName("Did not take Pre-Req")
-    public void testFailsPreRequisites1() {
+    public void testDidNotTakePreRequisiteClass() {
         //did not take pre-req
-
+        Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
+        Course testCourse1 = mock(Course.class);
+        testCourse1.addPrerequisite(prerequisite);
+        assertFalse(mockStudent.meetsPrerequisite(prerequisite));
     }
     @Test
     @DisplayName("Took Pre-Req but did not pass it.")
-    public void testFailsPreRequisites2() {
+    public void testFailsPreRequisites() {
         //took pre-req and failed it
-
+        Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
+        mockStudent.addCourseGrade(testCourse,Grade.D_PLUS);
+        Course testCourse1 = mock(Course.class);
+        testCourse1.addPrerequisite(prerequisite);
+        assertFalse(mockStudent.meetsPrerequisite(prerequisite));
     }
     @Test
     public void testGetGPAwithNoClasses() {
-        when(testTranscript.courseHistory.isEmpty()).thenReturn(true);
         assertThrows(IllegalStateException.class, () ->
                 mockStudent.getGPA());
-        verify(testTranscript.courseHistory, never()).get(testCourse);
     }
     @Test
     public void testGetGPA() {
+        when(testCourse.getCreditHours()).thenReturn(3);
         mockStudent.addCourseGrade(testCourse,Grade.A_PLUS);
-        assertEquals(4.0,mockStudent.getGPA());
+        double actual = mockStudent.getGPA();
+        assertEquals(4.0,actual);
     }
 }
