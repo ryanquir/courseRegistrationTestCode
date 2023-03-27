@@ -4,30 +4,38 @@ import java.util.List;
 
 public class RegistrationImpl implements Registration {
     //TODO: Implement class
-
+    CourseCatalog myCatalog = new CourseCatalog();
     @Override
     public CourseCatalog getCourseCatalog() {
-        return null;
+        return (CourseCatalog) myCatalog.getAllCourses();
     }
 
     @Override
     public void setCourseCatalog(CourseCatalog courseCatalog) {
-
+        myCatalog.courseList = courseCatalog.courseList;
     }
 
     @Override
     public boolean isEnrollmentFull(Course course) {
-        return false;
+        if (course.getCurrentEnrollmentSize() >= course.getEnrollmentCap()){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public boolean isWaitListFull(Course course) {
-        return false;
+        if (course.getCurrentWaitListSize() >= course.getWaitListCap()){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public Course.EnrollmentStatus getEnrollmentStatus(Course course) {
-        return null;
+        return course.getEnrollmentStatus();
     }
 
     @Override
