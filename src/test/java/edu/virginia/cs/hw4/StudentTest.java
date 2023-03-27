@@ -85,7 +85,6 @@ public class StudentTest {
     @Test
     @DisplayName("Did not take Pre-Req")
     public void testDidNotTakePreRequisiteClass() {
-        //did not take pre-req
         Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
         Course testCourse1 = mock(Course.class);
         testCourse1.addPrerequisite(prerequisite);
@@ -94,7 +93,6 @@ public class StudentTest {
     @Test
     @DisplayName("Took Pre-Req but did not pass it.")
     public void testFailsPreRequisites() {
-        //took pre-req and failed it
         Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
         mockStudent.addCourseGrade(testCourse,Grade.D_PLUS);
         Course testCourse1 = mock(Course.class);
