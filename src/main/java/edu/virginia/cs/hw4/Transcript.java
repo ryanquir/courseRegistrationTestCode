@@ -8,15 +8,14 @@ public class Transcript {
     Student student;
     Map<Course, Grade> courseHistory;
 
-    //void addCourseGrade(Course course, Grade grade)
-    //boolean hasStudentTakenCourse(Course course)
-    //Grade getCourseGrade(Course course)
-    //boolean meetsPrerequisite(Prerequisite prerequisite)
-    //double getGPA()
     public Transcript(Student student) {
         this.student = student;
         courseHistory = new HashMap<>();
     }
+    public Transcript(Map<Course, Grade> courseHistory){
+        this.courseHistory = courseHistory;
+    }
+
     public void addCourseGrade(Course course, Grade grade) {
         courseHistory.put(course, grade);
     }

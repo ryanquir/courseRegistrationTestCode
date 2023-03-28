@@ -12,64 +12,57 @@ public class StudentTest {
     private Course testCourse;
     private Student mockStudent;
     private Transcript testTranscript;
+    private Map<Course,Grade> mockMap;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     public void setUp() {
-        testCourse = mock(Course.class);
         mockStudent = getTestStudent();
-        testTranscript = new Transcript(mockStudent);
+        testCourse = mock(Course.class);
+        mockMap = mock(Map.class);
+        testTranscript = new Transcript(mockMap);
+        mockStudent.setTranscript(testTranscript);
     }
     private Student getTestStudent() {
         return new Student(100, "Christopher Joseph",
                 "tbh7cm@virginia.edu");
     }
-    private Course getTestCourse() {
-        return new Course(18802,
-                "Software Development Essentials", "CS",
-                3140, 1, 3, "Paul McBurney",
-                "pm8fc@virginia.edu", 175, 99,
-                List.of(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY),
-                12, 30, 75,"Gilmer 301",
-                new ArrayList<>());
-    }
-    //To Check:
-    //void addCourseGrade(Course course, Grade grade)
-    //boolean hasStudentTakenCourse(Course course)
-    //Grade getCourseGrade(Course course)
-    //boolean meetsPrerequisite(Prerequisite prerequisite)
-    //double getGPA()
+
     @Test
-    public void testaddCourseGrade() {
-        //need to test for side effects
+    public void testAddCourseGradeToEmptyTranscript() {
+        when(mockMap.isEmpty()).thenReturn(true);
         mockStudent.addCourseGrade(testCourse,Grade.A);
-        testTranscript = mockStudent.getTranscript();
-        //assert that the student's transcript added the test course.
-        assertTrue(testTranscript.courseHistory.containsKey(testCourse));
-        //assert that the student's class on transcript has the correct grade.
-        assertEquals(Grade.A,testTranscript.courseHistory.get(testCourse));
+        verify(mockMap).put(testCourse, Grade.A);
+    }
+    @Test
+    public void testaddCourseGradetoNonEmptyTranscript() {
+        when(mockMap.isEmpty()).thenReturn(false);
+        mockStudent.addCourseGrade(testCourse,Grade.A);
+        verify(mockMap).put(testCourse, Grade.A);
     }
     @Test
     public void testStudentAlreadyTookCourse() {
-        mockStudent.addCourseGrade(testCourse,Grade.A);
+        when(mockMap.containsKey(testCourse)).thenReturn(true);
         assertTrue(mockStudent.hasStudentTakenCourse(testCourse));
     }
     @Test
     public void testStudentNeverTookCourse() {
-        Course testCourse1 = mock(Course.class);
-        mockStudent.addCourseGrade(testCourse,Grade.A);
-        assertFalse(mockStudent.hasStudentTakenCourse(testCourse1));
+        when(mockMap.containsKey(testCourse)).thenReturn(false);
+        assertFalse(mockStudent.hasStudentTakenCourse(testCourse));
     }
     @Test
     public void testCantGetCourseGrade() {
-        //we did not add a class this time, so student should not have any classes to get a grade from.
+        when(mockMap.containsKey(testCourse)).thenReturn(false);
         assertThrows(IllegalArgumentException.class, () ->
                 mockStudent.getCourseGrade(testCourse));
+        verify(mockMap, never()).get(testCourse);
     }
     @Test
     public void testGetCourseGrade() {
-        mockStudent.addCourseGrade(testCourse,Grade.A);
+        when(mockMap.containsKey(testCourse)).thenReturn(true);
+        when(mockMap.get(testCourse)).thenReturn(Grade.A_PLUS);
         Grade actual = mockStudent.getCourseGrade(testCourse);
-        Grade expected = Grade.A;
+        Grade expected = Grade.A_PLUS;
         assertEquals(expected,actual);
     }
     @Test
@@ -77,7 +70,8 @@ public class StudentTest {
     public void testMeetsPreRequisites() {
         //took pre-req and passed it
         Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
-        mockStudent.addCourseGrade(testCourse,Grade.B_PLUS);
+        when(mockMap.containsKey(testCourse)).thenReturn(true);
+        when(mockMap.get(testCourse)).thenReturn(Grade.B_PLUS);
         Course testCourse1 = mock(Course.class);
         testCourse1.addPrerequisite(prerequisite);
         assertTrue(mockStudent.meetsPrerequisite(prerequisite));
@@ -86,6 +80,7 @@ public class StudentTest {
     @DisplayName("Did not take Pre-Req")
     public void testDidNotTakePreRequisiteClass() {
         Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
+        when(mockMap.containsKey(testCourse)).thenReturn(false);
         Course testCourse1 = mock(Course.class);
         testCourse1.addPrerequisite(prerequisite);
         assertFalse(mockStudent.meetsPrerequisite(prerequisite));
@@ -94,20 +89,26 @@ public class StudentTest {
     @DisplayName("Took Pre-Req but did not pass it.")
     public void testFailsPreRequisites() {
         Prerequisite prerequisite = new Prerequisite(testCourse,Grade.C);
-        mockStudent.addCourseGrade(testCourse,Grade.D_PLUS);
+        when(mockMap.containsKey(testCourse)).thenReturn(true);
+        when(mockMap.get(testCourse)).thenReturn(Grade.D_PLUS);
         Course testCourse1 = mock(Course.class);
         testCourse1.addPrerequisite(prerequisite);
         assertFalse(mockStudent.meetsPrerequisite(prerequisite));
     }
     @Test
     public void testGetGPAwithNoClasses() {
+        when(mockMap.isEmpty()).thenReturn(true);
         assertThrows(IllegalStateException.class, () ->
                 mockStudent.getGPA());
     }
     @Test
     public void testGetGPA() {
+        Set<Course> courseList = new HashSet<>();
+        courseList.add(testCourse);
         when(testCourse.getCreditHours()).thenReturn(3);
-        mockStudent.addCourseGrade(testCourse,Grade.A_PLUS);
+        when(mockMap.isEmpty()).thenReturn(false);
+        when(mockMap.keySet()).thenReturn(courseList);
+        when(mockMap.get(testCourse)).thenReturn(Grade.A_PLUS);
         double actual = mockStudent.getGPA();
         assertEquals(4.0,actual);
     }

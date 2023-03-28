@@ -45,8 +45,9 @@ public class Student {
         this.email = email;
     }
 
-    public Transcript getTranscript() {
-        return this.transcript;
+    //fixed a bug to set the student transcript to the one that contains a mockMap class.
+    public void setTranscript(Transcript transcript) {
+        this.transcript = transcript;
     }
 
     public void addCourseGrade(Course course, Grade grade) {
