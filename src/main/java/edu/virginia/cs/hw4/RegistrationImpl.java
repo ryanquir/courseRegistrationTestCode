@@ -4,11 +4,10 @@ import java.time.DayOfWeek;
 import java.util.List;
 
 public class RegistrationImpl implements Registration {
-    //TODO: Implement class
     CourseCatalog myCatalog = new CourseCatalog();
     @Override
     public CourseCatalog getCourseCatalog() {
-        return (CourseCatalog) myCatalog.getAllCourses();
+        return this.myCatalog;
     }
 
     @Override
@@ -63,8 +62,8 @@ public class RegistrationImpl implements Registration {
 
     @Override
     public boolean hasConflictWithStudentSchedule(Course course, Student student) {
-        List <Course> newCatalog = (List<Course>) getCourseCatalog();
-        for (Course course1:newCatalog) {
+        List <Course> courses = myCatalog.getCoursesEnrolledIn(student);
+        for (Course course1:courses) {
             if(course1.isStudentEnrolled(student)) {
                 if (areCoursesConflicted(course, course1)) {
                     return true;
@@ -137,7 +136,7 @@ public class RegistrationImpl implements Registration {
                 }
             }
         } else {
-            throw new RuntimeException("IllegalArgumentException");
+            throw new IllegalArgumentException("Cannot drop course that student is not enrolled in.");
         }
     }
 }
