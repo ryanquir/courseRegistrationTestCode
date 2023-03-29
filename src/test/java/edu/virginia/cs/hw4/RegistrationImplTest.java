@@ -184,7 +184,6 @@ public class RegistrationImplTest {
         when(mockCourse.getEnrollmentCap()).thenReturn(1);
         assertEquals(RegistrationResult.ENROLLED, mockRegistration.registerStudentForCourse(mockStudent, mockCourse));
         verify(mockCourse).addStudentToEnrolled(mockStudent);
-        assertEquals(mockCourse.getEnrollmentStatus(), Course.EnrollmentStatus.WAIT_LIST);
     }
     @Test
     public void testWaitListStudent() {
@@ -195,6 +194,27 @@ public class RegistrationImplTest {
         when(mockCourse.getWaitListCap()).thenReturn(1);
         assertEquals(RegistrationResult.WAIT_LISTED, mockRegistration.registerStudentForCourse(mockStudent, mockCourse));
         verify(mockCourse).addStudentToWaitList(mockStudent);
-        assertEquals(mockCourse.getEnrollmentStatus(), Course.EnrollmentStatus.CLOSED);
+    }
+    @Test
+    public void testDropWaitList() {
+        when(mockCourse.isStudentEnrolled(mockStudent)).thenReturn(false);
+        when(mockCourse.isStudentWaitListed(mockStudent)).thenReturn(true);
+        mockRegistration.dropCourse(mockStudent,mockCourse);
+        verify(mockCourse).removeStudentFromWaitList(mockStudent);
+    }
+    @Test
+    public void testDropClass() {
+        when(mockCourse.isStudentEnrolled(mockStudent)).thenReturn(true);
+        when(mockCourse.isStudentWaitListed(mockStudent)).thenReturn(false);
+        mockRegistration.dropCourse(mockStudent,mockCourse);
+        verify(mockCourse).removeStudentFromEnrolled(mockStudent);
+    }
+    @Test
+    public void testError() {
+        when(mockCourse.isStudentEnrolled(mockStudent)).thenReturn(false);
+        when(mockCourse.isStudentWaitListed(mockStudent)).thenReturn(false);
+        assertThrows(IllegalArgumentException.class,
+                ()->{mockRegistration.dropCourse(mockStudent,mockCourse);
+                });
     }
 }
